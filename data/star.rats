@@ -1,0 +1,25 @@
+************************
+* This program performs Smooth GARCH(1,1) Estimation 
+************************
+all 0 755:1
+open data m-3m4608.txt
+data(org=obs) / dd rt
+set h = 0.0
+nonlin mu a0 a1 a2 a00 a11
+frml at = rt(t) - mu
+frml var1 =  a0+a1*at(t-1)**2+a2*at(t-2)**2
+frml var2 = a00+a11*at(t-1)**2 
+frml gvar = var1(t)+var2(t)/(1.0+exp(-at(t-1)*1000.0))
+frml garchlog = -0.5*log(h(t)=gvar(t))-0.5*at(t)**2/h(t)
+smpl 3 755
+compute a0 = .01, a1 = 0.2, a2 = 0.1
+compute  a00 = .01, a11 = -.2, mu = 0.02
+
+maximize(method=bhhh,recursive,iterations=150) garchlog
+set fv = gvar(t)                                                      
+set resid = at(t)/sqrt(fv(t)) 
+set residsq = resid(t)*resid(t) 
+cor(qstats,number=20,span=10) resid 
+cor(qstats,number=20,span=10) residsq 
+
+

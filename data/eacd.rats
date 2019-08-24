@@ -1,0 +1,19 @@
+** This program estimates an EACD model.
+all 0  3534:1
+open data ibm1to5-dur.dat
+data(org=obs) / x 
+set psi = 1.0
+nonlin a0 a1 b1 
+frml gvar = a0+a1*x(t-1)+b1*psi(t-1)                                
+frml gln = -log(psi(t)=gvar(t))-x(t)/psi(t)
+smpl 2 3534
+compute a1 = 0.1, b1 = 0.6, a0 = 0.1
+maximize(method=bhhh,recursive,iterations=150) gln 
+set fv = gvar(t)                       
+set resid = x(t)/fv(t) 
+set residsq = resid(t)*resid(t) 
+*** 
+*** Checking standardized residuals ***
+cor(qstats,number=20,span=10) resid 
+*** Checking squared standardized residuals ***
+cor(qstats,number=20,span=10) residsq 

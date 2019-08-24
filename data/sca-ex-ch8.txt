@@ -1,0 +1,42 @@
+-- load data into SCA and call the series ibm and sp.
+input ibm,sp. file 'm-ibmspln.dat'
+desc ibm
+desc sp
+miden ibm,sp. maxlag 5. output level(detail).
+-- the above four commands are for Table 8.1
+ --
+miden ibm,sp. no ccm. arfits 1 to 6.
+ -- The above command is for Table 8.3
+mtsmodel m1. series ibm,sp. model (i-p1*b-p3*b**3)series=p0+noise.
+mestim m1. hold resi(r1,r2)
+ -- put zero  parameter constraints
+p1(1,1)=0
+p1(2,1)=0
+cp1(1,1)=1
+cp1(2,1)=1
+p3(1,1)=0
+p3(2,1)=0
+cp3(1,1)=1
+cp3(2,1)=1
+mestim m1. hold resi(r1,r2).
+miden r1,r2. maxlag 6.
+ -- The above commands are used to obtain Table 8.4
+mfore m1. nofs 4.
+ -- The above command produces 1-step to 4-step forecasts
+mtsmodel m2. series ibm,sp. model series=t0+(1-t1*b-t3*b**3)noise.
+mestim m2. hold resi(r1,r2).
+ -- The above command performs conditional MLE estimation.
+mestim m2. hold resi(r1,r2). method exact.
+ -- put on zero parameter constraints
+t1(1,1)=0
+t1(2,1)=0
+ct1(1,1)=1
+ct1(2,1)=1
+t3(1,1)=0
+t3(2,1)=0
+ct3(1,1)=1
+ct3(2,1)=1
+mestim m2. hold resi(r1,r2). method exact.
+miden r1,r2. maxl 6.
+stop
+

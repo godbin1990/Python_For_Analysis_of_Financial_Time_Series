@@ -1,0 +1,24 @@
+** This program estimates a GACD(1,1) model.
+all 0  3534:1
+open data ibm1to5-dur.dat
+data(org=obs) / x 
+set psi = 1.0
+nonlin a0 a1 b1 al ka 
+frml cv = a0+a1*x(t-1)+b1*psi(t-1)                                
+frml gma = %LNGAMMA(ka)
+frml lam = exp(gma(t))/exp(%LNGAMMA(ka+(1.0/al)))
+frml xlam = x(t)/(lam(t)*(psi(t)=cv(t)))
+frml gln = -gma(t)+log(al/x(t))+ka*al*log(xlam(t))-(xlam(t))**al
+smpl 2 3534
+compute a0 = 0.238, a1 = 0.075, b1 = 0.857, al = 0.5, ka = 4.0
+nlpar(criterion=value,cvcrit=0.00001)
+maximize(method=bhhh,recursive,iterations=150) gln 
+set fv = cv(t)                       
+set resid = x(t)/fv(t) 
+set residsq = resid(t)*resid(t) 
+*** 
+*** Checking standardized residuals ***
+cor(qstats,number=20,span=10) resid 
+*** Checking squared standardized residuals ***
+cor(qstats,number=20,span=10) residsq 
+

@@ -1,0 +1,37 @@
+** Example 9.1 (** Only the first 469 data points are used **)
+all 0 491:1
+open data hkja.dat
+data(org=obs) / r1 r2 
+set h1 = 0.0
+set h2 = 0.0
+nonlin p6 a0 a1 a2 b0 b1 b2 rho 
+frml a1t = r1(t)-p6*r1(t-6)
+frml a2t = r2(t)
+frml gvar1 = a0+a1*a1t(t-1)**2+a2*h1(t-1) 
+frml gvar2 = b0+b1*a2t(t-1)**2+b2*h2(t-1) 
+frml gdet = -0.5*(log(h1(t)=gvar1(t))+log(h2(t)=gvar2(t)) $ 
+      + log(1.0-rho**2))
+frml garchln = gdet-0.5*((a1t(t)**2/h1(t))+(a2t(t)**2/h2(t)) $
+   -2*rho*a1t(t)*a2t(t)/sqrt(h1(t)*h2(t)))/(1.0-rho**2)
+smpl 8  469
+compute a0 = .1, a1 = .1, a2 = .4, b0 = .1, b1 = .2, b2 = .6
+compute p6 = .1, rho = 0.1
+*nlpar(criterion=value,cvcrit=0.000001)
+maximize(method=bhhh,recursive,iterations=150) garchln 
+set fv1 = gvar1(t)                                                      
+set resid = a1t(t)/sqrt(fv1(t)) 
+set residsq = resid(t)*resid(t) 
+*** Checking standardized residuals ***
+cor(qstats,number=12,span=4) resid 
+*** Checking squared standardized residuals ***
+cor(qstats,number=12,span=4) residsq 
+set fv2 = gvar2(t)                                                      
+set resi = a2t(t)/sqrt(fv2(t)) 
+set residsq = resi(t)*resi(t) 
+*** Checking standardized residuals ***
+cor(qstats,number=12,span=4) resi
+*** Checking squared standardized residuals ***
+cor(qstats,number=12,span=4) residsq 
+*** standardized residuals ***
+print  8 469 resid resi
+

@@ -1,0 +1,21 @@
+** This program estimates a WACD(1,1) model.
+all 0  3534:1
+open data ibm1to5-dur.dat
+data(org=obs) / x 
+set psi = 1.0
+nonlin a0 a1 b1 al 
+frml gvar = a0+a1*x(t-1)+b1*psi(t-1)                                
+frml gma = %LNGAMMA(1.0+1.0/al)
+frml gln = al*gma(t)+log(al)-log(x(t))+al*log(x(t)/(psi(t)=gvar(t))) $
+        -(exp(gma(t))*x(t)/psi(t))**al 
+smpl 2 3534
+compute a0 = 0.2, a1 = 0.1, b1 = 0.1, al = 0.8 
+maximize(method=bhhh,recursive,iterations=150) gln 
+set fv = gvar(t)                       
+set resid = x(t)/fv(t) 
+set residsq = resid(t)*resid(t) 
+*** 
+*** Checking standardized residuals ***
+cor(qstats,number=20,span=10) resid 
+*** Checking squared standardized residuals ***
+cor(qstats,number=20,span=10) residsq 

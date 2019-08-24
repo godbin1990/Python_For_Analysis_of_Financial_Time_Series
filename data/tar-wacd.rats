@@ -1,0 +1,30 @@
+* Estimate a TAR-WCAD(1,1) model for time durations of IBM stock.
+all 0 3534:1
+open data ibm1to5-dur.dat 
+data(org=obs) / x 
+set psi = 1.0
+*nonlin a0 a1 a2 al b0 b1 b2 bl
+*nonlin a1 a2 al b0 b1 b2 bl
+nonlin a1 a2 al b0 b2 bl
+*frml gvar1 = a0+a1*x(t-1)+a2*psi(t-1) 
+frml gvar1 = a1*x(t-1)+a2*psi(t-1) 
+frml gma1 = %LNGAMMA(1.0+1.0/al)
+*frml gvar2 = b0+b1*x(t-1)+b2*psi(t-1)
+frml gvar2 = b0+b2*psi(t-1)
+frml gma2 = %LNGAMMA(1.0+1.0/bl) 
+frml gvar = %if(x(t-1)>3.79,gvar2(t),gvar1(t))
+frml gln1 = al*gma1(t)+log(al)-log(x(t))+al*log(x(t)/(psi(t)=gvar(t))) $
+        -(exp(gma1(t))*x(t)/psi(t))**al 
+frml gln2 = bl*gma2(t)+log(bl)-log(x(t))+bl*log(x(t)/(psi(t)=gvar(t))) $
+        -(exp(gma2(t))*x(t)/psi(t))**bl 
+frml gln = %if(x(t-1)>3.79,gln2(t),gln1(t)) 
+smpl 2 3534
+compute a0 = 0.1, a1 = 0.2, a2 = 0.85, al = 0.9 
+compute b0 = 1.8, b1 = 0.03, b2 = 0.5,bl = 0.8
+**maximize(method=simplex,iterations=10) gln 
+maximize(method=bhhh,recursive,iterations=150) gln 
+set fv = gvar(t)                         
+set resid = x(t)/fv(t) 
+set residsq = resid(t)*resid(t) 
+cor(qstats,number=20,span=10) resid 
+cor(qstats,number=20,span=10) residsq 

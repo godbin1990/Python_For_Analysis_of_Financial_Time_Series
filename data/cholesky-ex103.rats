@@ -1,0 +1,70 @@
+*** Final model used for Example 10.6 ***
+all 0 2275:1
+open data d-cscointc.txt
+data(org=obs) / r1 r2 r3
+set h1 = 1.0
+set h2 = 4.0
+set h3 = 3.0
+set q21 = 0.8
+set q31 = 0.3
+set q32 = 0.3
+nonlin  c1 c2 c3 p3 p21 p22 p31 p33 a0 a1 a2 t0 t1 t2 b0 b1 $ 
+        b2 u0 u1 u2 w0 w1 w2 d0 d1 d2 d5
+frml a1t = r1(t)-c1-p3*r1(t-3)
+frml a2t = r2(t)-c2-p21*r1(t-2)-p22*r2(t-2)
+frml a3t = r3(t)-c3-p31*r1(t-1)-p33*r3(t-1)
+frml v1 = a0+a1*a1t(t-1)**2+a2*h1(t-1) 
+frml q1t = t0 + t1*q21(t-1) + t2*a2t(t-1)
+frml bt = a2t(t) - (q21(t)=q1t(t))*a1t(t)
+frml v2 = b0+b1*bt(t-1)**2+b2*h2(t-1) 
+frml q2t = u0 + u1*q31(t-1) + u2*a3t(t-1)
+frml q3t = w0 + w1*q32(t-1) + w2*a2t(t-1)
+frml b1t = a3t(t)-(q31(t)=q2t(t))*a1t(t)-(q32(t)=q3t(t))*bt(t)
+frml v3 = d0+d1*b1t(t-1)**2+d2*h3(t-1)+d5*h2(t-1)
+frml gdet = -0.5*(log(h1(t) = v1(t))+ log(h2(t)=v2(t))+log(h3(t)=v3(t)))
+frml garchln = gdet-0.5*(a1t(t)**2/h1(t)+bt(t)**2/h2(t)+b1t(t)**2/h3(t))
+smpl 8 2275
+compute c1 = 0.07, c2 = 0.33, c3 = 0.19, p1 = 0.1, p3 = -0.04 
+compute p21 =0.2, p22 = -0.1, p31 = -0.26, p33 = 0.06
+compute a0 = .01, a1 = 0.05, a2 = 0.94, t0 = 0.28, t1 =0.82, t2 = -0.035 
+compute b0 = .17, b1 = 0.08, b2 = 0.89 
+compute u0= 0.04, u1 = 0.97, u2 = 0.01, w0 =0.006, w1=0.98, w2=0.004
+compute d0 =1.38, d1 = 0.06, d2 = 0.64, d5 = -0.027
+nlpar(criterion=value,cvcrit=0.00001)
+maximize(method=bhhh,recursive,iterations=250) garchln 
+set fv1 = v1(t)
+set resi1 = a1t(t)/sqrt(fv1(t)) 
+set residsq = resi1(t)*resi1(t) 
+*** Checking standardized residuals and their squares ***
+cor(qstats,number=12,span=4) resi1
+cor(qstats,number=12,span=4) residsq 
+set fv2 = v2(t)+q1t(t)**2*v1(t)
+set resi2 = a2t(t)/sqrt(fv2(t)) 
+set residsq = resi2(t)*resi2(t) 
+*** Checking standardized residuals and their squares ***
+cor(qstats,number=12,span=4) resi2
+cor(qstats,number=12,span=4) residsq 
+set fv3 = v3(t)+q2t(t)**2*v1(t)+q3t(t)**2*v2(t)
+set resi3 = a3t(t)/sqrt(fv3(t))
+set residsq = resi3(t)*resi3(t)
+*** Checking standardized residuals and their squares ***
+cor(qstats,number=12,span=4) resi3
+cor(qstats,number=12,span=4) residsq 
+* print standardized residuals and correlation-coefficients if needed
+set rho21 = q1t(t)*sqrt(v1(t)/fv2(t))
+set rho31 = q2t(t)*sqrt(v1(t)/fv3(t))
+set rho32 = (q2t(t)*q1t(t)*v1(t)+q3t(t)*v2(t))/sqrt(fv2(t)*fv3(t))
+*print 10  2275 resi1 resi2 resi3 
+*print 10 2275 rho21 rho31 rho32
+*** Last few observations needed for forecasts if needed  ***
+*set shock1 = a1t(t)
+*set shock2 = a2t(t)
+*set shock3 = a3t(t)
+*set ta2 = bt(t)
+*set ta3 = b1t(t)
+*set g2 = v2(t)
+*set g3 = v3(t)
+*print 2270 2275 shock1 shock2 shock3
+*print 2270 2275 shock1 ta2 ta3
+*print 2270 2275 g2 g3 
+print 10 2275 fv1 fv2 fv3 

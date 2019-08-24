@@ -1,0 +1,25 @@
+all 0 9190:1
+open data d-ibmln98.dat
+data(org=obs) / rt
+set h = 0.0
+nonlin p0 p2 a0 a1 b1
+frml at = rt(t)-p0-p2*rt{2}
+frml gvar = a0+a1*at(t-1)**2+b1*h(t-1)                                
+frml tt = at(t)**2/(h(t)=gvar(t))
+*** t-dist with 5 d.f 
+frml garchln = -3.0*log(1.0+tt(t)/3.0) - 0.5*log(h(t))
+smpl 4 9190
+compute p0 = 0.01, p2 = 0.01, a0 = 0.1, a1 = 0.1, b1 = 0.8
+maximize(method=simplex,iterations=10) garchln 
+maximize(method=bhhh,recursive,iterations=150) garchln 
+set fv = gvar(t)                                                      
+set resid = at(t)/sqrt(fv(t)) 
+set residsq = resid(t)*resid(t) 
+*** 
+*** Checking standardized residuals ***
+cor(qstats,number=20,span=10) resid 
+*** Checking squared standardized residuals ***
+cor(qstats,number=20,span=10) residsq 
+*** Last few observations needed for forecasts ***
+set shock = at(t)
+print 9189 9190 rt shock fv
