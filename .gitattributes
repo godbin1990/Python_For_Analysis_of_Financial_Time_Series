@@ -1,0 +1,5 @@
+*.txt linguist-language=python
+*.rats linguist-language=python
+*.data linguist-language=python
+*.f linguist-language=python
+*.R linguist-language=python
