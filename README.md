@@ -20,6 +20,7 @@ QQ:460220463
     
 2、运行环境：
     *IDE:pycharm
-    *Version: Anaconda 4.6.11 (Python3.7)
+    *Version: ~~Anaconda 4.6.11 (Python3.7)~~
+            变更为pipenv环境
     *Environment:Work directory is the root path
                 设置根目录为工作目录

@@ -1,0 +1,15 @@
+[[source]]
+url = "https://pypi.tuna.tsinghua.edu.cn/simple/"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+pandas = "*"
+matplotlib = "*"
+statsmodels = "*"
+scipy = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.9"
